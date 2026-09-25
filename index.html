@@ -135,12 +135,13 @@
       { name: "3m", semitones: 3 },  { name: "3M", semitones: 4 },
       { name: "4J", semitones: 5 },  { name: "11", semitones: 5 },
       { name: "#11", semitones: 6 }, { name: "5J", semitones: 7 },
-      { name: "b5", semitones: 6 },  { name: "#5", semitones: 8 },
-      { name: "6m", semitones: 8 },  { name: "6M", semitones: 9 },
-      { name: "7m", semitones: 10 }, { name: "7M", semitones: 11 },
-      { name: "b9", semitones: 1 },  { name: "9", semitones: 2 },
+      { name: "b5", semitones: 6 },  { name: "♭5", semitones: 6 },
+      { name: "#5", semitones: 8 },  { name: "6m", semitones: 8 },
+      { name: "6M", semitones: 9 },  { name: "7m", semitones: 10 },
+      { name: "7M", semitones: 11 }, { name: "b9", semitones: 1 },
+      { name: "♭9", semitones: 1 },  { name: "9", semitones: 2 },
       { name: "#9", semitones: 3 },  { name: "b13", semitones: 8 },
-      { name: "13", semitones: 9 }
+      { name: "♭13", semitones: 8 }, { name: "13", semitones: 9 }
     ];
 
     const BASES = ["C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B"];
@@ -160,10 +161,7 @@
       const randomBase = BASES[Math.floor(Math.random() * BASES.length)];
       const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
       
-      // Converte a base para o índice do array NOTES (0-11)
       let baseIndex = getNoteIndex(randomBase);
-      
-      // Calcula o índice da nota correta
       currentCorrectIndex = (baseIndex + randomInterval.semitones) % 12;
 
       document.getElementById('question').innerText = `Qual é a ${randomInterval.name} de ${randomBase}?`;
@@ -174,13 +172,13 @@
     document.getElementById('quiz-form').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      const userAnswer = document.getElementById('answer').value.trim().toUpperCase();
+      const answerInput = document.getElementById('answer');
+      const userAnswer = answerInput.value.trim().toUpperCase();
       const feedback = document.getElementById('feedback');
 
       if (!userAnswer) return;
 
       const userIndex = getNoteIndex(userAnswer);
-      const correctAnswerName = NOTES[currentCorrectIndex];
 
       if (userIndex === currentCorrectIndex) {
         feedback.className = "feedback correct";
@@ -191,7 +189,9 @@
         }, 1000);
       } else {
         feedback.className = "feedback incorrect";
-        feedback.innerText = `Ops! A resposta correta é ${correctAnswerName}`;
+        feedback.innerText = "Ops! Resposta incorreta. Tente novamente!";
+        answerInput.value = '';
+        answerInput.focus();
       }
     });
 
