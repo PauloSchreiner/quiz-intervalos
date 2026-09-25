@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz de Intervalos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .card {
+      background-color: #1e293b;
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .label {
+      color: #94a3b8;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .question {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 2rem;
+      min-height: 3.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    input[type="text"] {
+      background-color: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      color: #ffffff;
+      padding: 0.75rem 1rem;
+      font-size: 1.25rem;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #38bdf8;
+    }
+
+    button {
+      background-color: #38bdf8;
+      color: #0f172a;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background-color: #7dd3fc;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .feedback {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      min-height: 1.5rem;
+    }
+
+    .correct { color: #4ade80; }
+    .incorrect { color: #f87171; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="label">Qual é a nota?</div>
+    <div class="question" id="question">Carregando...</div>
+
+    <form id="quiz-form">
+      <input type="text" id="answer" placeholder="Ex: C, C#, Db..." autocomplete="off" autofocus required />
+      <button type="submit">Verificar</button>
+    </form>
+
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <script>
+    // Mapeamento de notas em semitons a partir de C (0 a 11)
+    const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    
+    // Mapeamento de nomes alternativos (enarmonias) para aceitar na resposta
+    const ENHARMONICS = {
+      "DB": "C#", "EB": "D#", "GB": "F#", "AB": "G#", "BB": "A#",
+      "C#": "DB", "D#": "EB", "F#": "GB", "G#": "AB", "A#": "BB",
+      "E#": "F", "B#": "C", "CB": "B", "FB": "E"
+    };
+
+    // Tabela de semitons por tipo de intervalo
+    const INTERVALS = [
+      { name: "2m", semitones: 1 },  { name: "2M", semitones: 2 },
+      { name: "3m", semitones: 3 },  { name: "3M", semitones: 4 },
+      { name: "4J", semitones: 5 },  { name: "11", semitones: 5 },
+      { name: "#11", semitones: 6 }, { name: "5J", semitones: 7 },
+      { name: "b5", semitones: 6 },  { name: "#5", semitones: 8 },
+      { name: "6m", semitones: 8 },  { name: "6M", semitones: 9 },
+      { name: "7m", semitones: 10 }, { name: "7M", semitones: 11 },
+      { name: "b9", semitones: 1 },  { name: "9", semitones: 2 },
+      { name: "#9", semitones: 3 },  { name: "b13", semitones: 8 },
+      { name: "13", semitones: 9 }
+    ];
+
+    const BASES = ["C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B"];
+
+    let currentCorrectIndex = null;
+
+    function getNoteIndex(noteStr) {
+      const clean = noteStr.toUpperCase();
+      if (ENHARMONICS[clean]) {
+        const canonical = ENHARMONICS[clean];
+        return NOTES.indexOf(canonical) !== -1 ? NOTES.indexOf(canonical) : NOTES.indexOf(clean);
+      }
+      return NOTES.indexOf(clean);
+    }
+
+    function generateQuestion() {
+      const randomBase = BASES[Math.floor(Math.random() * BASES.length)];
+      const randomInterval = INTERVALS[Math.floor(Math.random() * INTERVALS.length)];
+      
+      // Converte a base para o índice do array NOTES (0-11)
+      let baseIndex = getNoteIndex(randomBase);
+      
+      // Calcula o índice da nota correta
+      currentCorrectIndex = (baseIndex + randomInterval.semitones) % 12;
+
+      document.getElementById('question').innerText = `Qual é a ${randomInterval.name} de ${randomBase}?`;
+      document.getElementById('answer').value = '';
+      document.getElementById('answer').focus();
+    }
+
+    document.getElementById('quiz-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const userAnswer = document.getElementById('answer').value.trim().toUpperCase();
+      const feedback = document.getElementById('feedback');
+
+      if (!userAnswer) return;
+
+      const userIndex = getNoteIndex(userAnswer);
+      const correctAnswerName = NOTES[currentCorrectIndex];
+
+      if (userIndex === currentCorrectIndex) {
+        feedback.className = "feedback correct";
+        feedback.innerText = "Correto! 🎉";
+        setTimeout(() => {
+          feedback.innerText = "";
+          generateQuestion();
+        }, 1000);
+      } else {
+        feedback.className = "feedback incorrect";
+        feedback.innerText = `Ops! A resposta correta é ${correctAnswerName}`;
+      }
+    });
+
+    // Iniciar primeira pergunta
+    generateQuestion();
+  </script>
+</body>
+</html>
